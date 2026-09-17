@@ -24,6 +24,10 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
+        path: "/sr-dream-api",
+        element: <HomePage />,
+      },
+      {
         path: "/about",
         element: <About />,
       },
