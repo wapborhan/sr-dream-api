@@ -5,6 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   server: { port: 3000 },
-  plugins: [react(), tailwindcss()],
   base: "/sr-dream-api/",
+  build: {
+    outDir: "html",
+    emptyOutDir: true,
+  },
+  plugins: [react(), tailwindcss()],
 });
