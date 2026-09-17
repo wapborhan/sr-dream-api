@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
   },
 
-  base: "/sr-dream-api/",
+  base: "/",
 
   plugins: [react(), tailwindcss()],
 
