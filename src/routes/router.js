@@ -1,6 +1,6 @@
 const userRouter = require("./user");
 const authRouter = require("./auth");
-const JobsRouter = require("./jobs");
+const JobsRouter = require("./srjobs");
 
 const routers = [
   ["/users", userRouter],

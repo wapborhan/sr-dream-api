@@ -1,66 +1,180 @@
 const asyncWrapper = require("../middlewares/async");
 const Users = require("../models/Users");
 
-// Get Request
+/**
+ * @desc    Get all users
+ * @route   GET /v1/users
+ * @access  Public
+ */
 const getAllUsers = asyncWrapper(async (req, res) => {
-  const result = await Users.find({});
-  res.send("result");
+  const users = await Users.find({}).sort({ createdAt: -1 }).lean();
+
+  res.status(200).json({
+    success: true,
+    message: "Users retrieved successfully.",
+    total: users.length,
+    data: users,
+  });
 });
 
+/**
+ * @desc    Get single user by username
+ * @route   GET /v1/user/:username
+ * @access  Public
+ */
 const getSingleUser = asyncWrapper(async (req, res) => {
   const { username } = req.params;
-  const filter = { username: username };
-  const result = await Users.findOne(filter);
-  res.status(200).json(result);
+
+  const user = await Users.findOne({ username }).lean();
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "User retrieved successfully.",
+    data: user,
+  });
 });
 
-// Post Request
+/**
+ * @desc    Create a new user
+ * @route   POST /v1/users
+ * @access  Public
+ */
 
 const createUsers = asyncWrapper(async (req, res) => {
-  try {
-    const userData = req.body;
+  const userData = req.body;
 
-    // Check if the username is provided in the request body
-    if (!userData || !userData.username) {
-      return res.status(400).json({ error: "Username is required" });
-    }
-
-    // Check if the username already exists in the database
-    const existingUser = await Users.findOne({ username: userData.username });
-
-    if (existingUser) {
-      return res.status(409).json({ error: "Username already exists" });
-    }
-
-    // If the username doesn't exist, create a new user
-    const newUser = await Users.create(userData);
-    res.status(201).json(newUser);
-  } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  // Check request body
+  if (!userData || Object.keys(userData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Request body is required.",
+    });
   }
+
+  // Validate username
+  if (!userData.username || !userData.username.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Username is required.",
+    });
+  }
+
+  // Validate email
+  if (!userData.email || !userData.email.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is required.",
+    });
+  }
+
+  // Normalize values
+  const username = userData.username.trim().toLowerCase();
+  const email = userData.email.trim().toLowerCase();
+
+  // Check duplicate username OR email
+  const existingUser = await Users.findOne({
+    $or: [
+      { username },
+      { email },
+    ],
+  }).lean();
+
+  if (existingUser) {
+    // Username already exists
+    if (existingUser.username === username) {
+      return res.status(409).json({
+        success: false,
+        message: "Username already exists.",
+      });
+    }
+
+    // Email already exists
+    if (existingUser.email === email) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already exists.",
+      });
+    }
+  }
+
+  // Create user
+  const user = await Users.create({
+    ...userData,
+    username,
+    email,
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "User created successfully.",
+    data: user,
+  });
 });
 
-const editSingleUser = asyncWrapper(async (req, res) => {
-  const username = req.params.username;
-  const newLinks = req.body.links;
-  const newBio = req.body.bio;
-  const newAddress = req.body.address;
 
-  try {
-    // Find the user by username and update their links field
-    const updatedUser = await Users.findOneAndUpdate(
-      { username: username },
-      { links: newLinks, bio: newBio, address: newAddress },
-    );
-    if (!updatedUser) {
-      return res.status(404).send({ message: "User not found" });
+
+/**
+ * @desc    Update user profile
+ * @route   PUT /v1/user/:username
+ * @access  Private
+ */
+const editSingleUser = asyncWrapper(async (req, res) => {
+  const { username } = req.params;
+
+  // Only allow these fields to be updated
+  const allowedFields = [
+    "name",
+    "photoUrl",
+    "companyName",
+    "address",
+    "bio",
+    "socialLinks",
+  ];
+
+  const updateData = {};
+
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      updateData[field] = req.body[field];
     }
-    // res.status(200).send(updatedUser);
-    res.status(200).send({ message: "Profile Updated" });
-  } catch (error) {
-    res.status(500).send({ message: error.message });
+  });
+
+  // Prevent empty update
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "No valid fields provided for update.",
+    });
   }
+
+  const updatedUser = await Users.findOneAndUpdate(
+    { username },
+    { $set: updateData },
+    {
+      new: true,
+      runValidators: true,
+    },
+  ).lean();
+
+  if (!updatedUser) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully.",
+    data: updatedUser,
+  });
 });
 
 module.exports = {

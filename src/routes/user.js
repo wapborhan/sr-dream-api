@@ -8,14 +8,12 @@ const {
 } = require("../controllers/users");
 
 const verifyToken = require("../middlewares/auth");
-// Protect everything inside this router
 
-// router.use(verifyToken);
+// Public routes
+router.route("/").get(getAllUsers).post(createUsers);
 
-router
-  .get("/", getAllUsers)
-  .post("/", createUsers)
-  .get("/:username", getSingleUser)
-  .put("/:username", editSingleUser);
+// User-specific routes
+// router.route("/:username").get(getSingleUser).put(verifyToken, editSingleUser);
+router.route("/:username").get(getSingleUser).put(editSingleUser);
 
 module.exports = router;
