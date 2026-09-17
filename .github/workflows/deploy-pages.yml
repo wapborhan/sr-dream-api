@@ -32,7 +32,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./client/dist
+          path: ./client/html
 
       - name: Deploy to GitHub Pages
         id: deployment
