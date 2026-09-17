@@ -6,4 +6,5 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   server: { port: 3000 },
   plugins: [react(), tailwindcss()],
+  base: "/sr-dream-api/",
 });
