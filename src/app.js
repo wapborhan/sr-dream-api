@@ -1,19 +1,21 @@
 const express = require("express");
 const app = express();
+
 const path = require("path");
 require("dotenv").config();
+
 const applyMiddlewares = require("./middlewares");
 const globalErrorHandler = require("./utils/globalErrorHandler");
 const applyRouter = require("./routes/router");
 
 //serve client side file path
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "../client/dist/"));
-app.use(express.static(path.join(__dirname, "../client/dist/")));
-// app.use(express.static(path.join(__dirname, "../client/dist/")));
+app.set("views", path.join(__dirname, "./public"));
+app.use(express.static(path.join(__dirname, "./public")));
 
+//Frontpage route
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // midlewares

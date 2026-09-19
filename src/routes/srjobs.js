@@ -9,9 +9,7 @@ const {
   createJobs,
   updateSingleJob,
   deleteJob,
-  companyJobs,
-  myJobs,
-} = require("../controllers/srjobs");
+} = require("../controllers/srjobs/jobs");
 
 const {
   createBookmark,
@@ -43,10 +41,10 @@ router.route("/jobs").get(getAllJobs).post(createJobs);
 router.route("/jobs/:id").get(singleJob).put(updateSingleJob).delete(deleteJob);
 
 // GET /v1/jobs/company/:compId
-router.get("/jobs/company/:compId", companyJobs);
+// router.get("/jobs/company/:compId", companyJobs);
 
 // GET /v1/my-jobs
-router.get("/my-jobs", myJobs);
+// router.get("/my-jobs", myJobs);
 
 // =====================================================
 // BOOKMARK ROUTES
